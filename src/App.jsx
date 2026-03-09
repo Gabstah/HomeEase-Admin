@@ -20,12 +20,14 @@ import ReviewsFlagged from './pages/ReviewsFlagged'
 import ReviewDetail from './pages/ReviewDetail'
 import Reports from './pages/Reports'
 import Settings from './pages/Settings'
+import Login from './pages/Login'
 
 export default function App() {
   return (
     <Routes>
+      <Route path="login" element={<Login />} />
       <Route path="/" element={<MainLayout />}>
-        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route index element={<Navigate to="/login" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="users" element={<Users />} />
