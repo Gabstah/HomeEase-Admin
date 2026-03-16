@@ -6,12 +6,7 @@ import FilterTabs from '../components/common/FilterTabs'
 import SectionCard from '../components/common/SectionCard'
 import Pagination from '../components/common/Pagination'
 import Badge from '../components/common/Badge'
-
-const WORKERS = [
-  { id: '#W501', name: 'Juan Dela Cruz', services: 'Plumbing, Wiring', rating: '4.9', status: 'Verified', earnings: '₱18,450' },
-  { id: '#W502', name: 'Maria Santos', services: 'Cleaning, Laundry', rating: '4.8', status: 'Verified', earnings: '₱12,100' },
-  { id: '#W503', name: 'Pedro Garcia', services: 'Electrical, HVAC', rating: '4.7', status: 'Pending', earnings: '₱0' },
-]
+import { WORKERS } from '../data/users'
 
 export default function Workers() {
   const [filterTab, setFilterTab] = useState('All')
@@ -43,7 +38,7 @@ export default function Workers() {
             <tbody>
               {filteredWorkers.map((worker) => (
                 <tr key={worker.id}>
-                  <td>{worker.id}</td>
+                  <td>{worker.displayId}</td>
                   <td>{worker.name}</td>
                   <td>{worker.services}</td>
                   <td>★ {worker.rating}</td>
@@ -51,7 +46,7 @@ export default function Workers() {
                   <td>{worker.earnings}</td>
                   <td>
                     <div className="row-actions">
-                      <Link to="/workers/501" className="action-btn view" title="View"><i className="fas fa-eye" /></Link>
+                      <Link to={`/workers/${worker.id}`} className="action-btn view" title="View"><i className="fas fa-eye" /></Link>
                       <button type="button" className="action-btn delete" title="Suspend"><i className="fas fa-trash" /></button>
                     </div>
                   </td>

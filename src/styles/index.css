@@ -413,6 +413,10 @@ body {
 .btn-purple { background: var(--purple); color: white; }
 .btn-orange { background: var(--warning); color: white; }
 .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 .cta-buttons {
   display: flex;

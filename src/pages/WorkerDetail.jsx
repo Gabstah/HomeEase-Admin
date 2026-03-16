@@ -1,18 +1,8 @@
-import { Link } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import PageHeader from '../components/common/PageHeader'
 import SectionCard from '../components/common/SectionCard'
 import Badge from '../components/common/Badge'
-
-const DETAILS = [
-  { label: 'Worker ID', value: '#W501' },
-  { label: 'Full Name', value: 'Juan Dela Cruz' },
-  { label: 'Email', value: 'juan.d@email.com' },
-  { label: 'Services', value: 'Plumbing, Wiring, Installation' },
-  { label: 'Rating', value: '★ 4.9 (128 reviews)' },
-  { label: 'Total Earnings', value: '₱18,450' },
-  { label: 'Verification', value: <Badge variant="approved">Verified</Badge> },
-  { label: 'Joined', value: 'Dec 10, 2024' },
-]
+import { getWorkerById } from '../data/users'
 
 const BOOKINGS = [
   { id: '#B201', client: 'Maria Santos', service: 'Plumbing', date: 'Mar 1, 2025', earnings: '₱450' },
@@ -20,6 +10,30 @@ const BOOKINGS = [
 ]
 
 export default function WorkerDetail() {
+  const { id } = useParams()
+  const worker = getWorkerById(id)
+
+  if (!worker) {
+    return <Navigate to="/workers" replace />
+  }
+
+  const details = [
+    { label: 'Worker ID', value: worker.displayId },
+    { label: 'Full Name', value: worker.name },
+    { label: 'Email', value: worker.email },
+    { label: 'Services', value: worker.services },
+    { label: 'Rating', value: `★ ${worker.rating} (${worker.reviews} reviews)` },
+    { label: 'Total Earnings', value: worker.earnings },
+    {
+      label: 'Verification',
+      value: (
+        <Badge variant={worker.verification === 'Verified' ? 'approved' : 'pending'}>
+          {worker.verification}
+        </Badge>
+      ),
+    },
+    { label: 'Joined', value: worker.joined },
+  ]
   return (
     <>
       <PageHeader
@@ -33,7 +47,7 @@ export default function WorkerDetail() {
         )}
       />
       <div className="detail-grid">
-        {DETAILS.map(({ label, value }) => (
+        {details.map(({ label, value }) => (
           <div key={label} className="detail-block">
             <label>{label}</label>
             <div className="value">{value}</div>

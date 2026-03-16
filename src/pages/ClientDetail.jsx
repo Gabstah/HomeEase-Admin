@@ -1,18 +1,8 @@
-import { Link } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import PageHeader from '../components/common/PageHeader'
 import SectionCard from '../components/common/SectionCard'
 import Badge from '../components/common/Badge'
-
-const DETAILS = [
-  { label: 'Client ID', value: '#1001' },
-  { label: 'Full Name', value: 'Maria Santos' },
-  { label: 'Email', value: 'maria.s@email.com' },
-  { label: 'Phone', value: '0917 123 4567' },
-  { label: 'Status', value: <Badge variant="active">active</Badge> },
-  { label: 'Total Bookings', value: '12' },
-  { label: 'Total Spent', value: '₱4,240' },
-  { label: 'Joined', value: 'Jan 15, 2025' },
-]
+import { getClientById } from '../data/users'
 
 const BOOKINGS = [
   { id: '#B201', service: 'Plumbing', worker: 'Juan Dela Cruz', date: 'Mar 1, 2025', status: 'Completed' },
@@ -20,6 +10,27 @@ const BOOKINGS = [
 ]
 
 export default function ClientDetail() {
+  const { id } = useParams()
+  const client = getClientById(id)
+
+  if (!client) {
+    return <Navigate to="/users" replace />
+  }
+
+  const details = [
+    { label: 'Client ID', value: client.displayId },
+    { label: 'Full Name', value: client.name },
+    { label: 'Email', value: client.email },
+    { label: 'Phone', value: client.phone },
+    {
+      label: 'Status',
+      value: <Badge variant={client.status === 'active' ? 'active' : 'suspended'}>{client.status}</Badge>,
+    },
+    { label: 'Total Bookings', value: String(client.bookings) },
+    { label: 'Total Spent', value: client.spent },
+    { label: 'Joined', value: client.joined },
+  ]
+
   return (
     <>
       <PageHeader
@@ -33,7 +44,7 @@ export default function ClientDetail() {
         )}
       />
       <div className="detail-grid">
-        {DETAILS.map(({ label, value }) => (
+        {details.map(({ label, value }) => (
           <div key={label} className="detail-block">
             <label>{label}</label>
             <div className="value">{value}</div>

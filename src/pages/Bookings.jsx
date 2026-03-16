@@ -10,6 +10,7 @@ import Badge from '../components/common/Badge'
 
 const SUB_NAV = [
   { to: '/bookings', label: 'All Bookings' },
+  { to: '/bookings/dispute', label: 'Booking Dispute' },
 ]
 
 const BOOKINGS = [
