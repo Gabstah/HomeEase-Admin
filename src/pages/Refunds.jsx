@@ -86,7 +86,7 @@ export default function Refunds() {
                   <td>
                     <button
                       type="button"
-                      className="btn btn.success"
+                      className="btn btn-success"
                       style={{ padding: '0.25rem 0.5rem', fontSize: '0.8125rem' }}
                       disabled={r.status === 'Completed'}
                       onClick={() => startProcess(r)}
@@ -104,17 +104,17 @@ export default function Refunds() {
       {selected && (
         <div className="modal-backdrop" onClick={closeModal} role="presentation">
           <div
-            className="modal"
+            className="modal modal--landscape"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
           >
             <h2 className="modal-title">Process Refund {selected.id}</h2>
-            <p className="modal-body">
+            <p className="modal-body" style={{ marginBottom: '0.75rem' }}>
               This refund was requested for booking <strong>{selected.booking}</strong> on
               transaction <strong>{selected.transaction}</strong>.
             </p>
-            <div className="detail-grid" style={{ marginBottom: '1rem' }}>
+            <div className="modal-detail-grid--2col">
               <div className="detail-block">
                 <label>Client</label>
                 <div className="value">{selected.client}</div>
@@ -135,7 +135,7 @@ export default function Refunds() {
                 <label>Platform Commission</label>
                 <div className="value">{formatPeso(selected.platformFee)}</div>
               </div>
-              <div className="detail-block" style={{ gridColumn: '1 / -1' }}>
+              <div className="detail-block detail-block--full">
                 <label>Refund Reason</label>
                 <div className="value">{selected.reason}</div>
               </div>

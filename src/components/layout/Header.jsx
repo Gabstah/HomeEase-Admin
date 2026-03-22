@@ -1,7 +1,7 @@
 export default function Header() {
   return (
     <header className="header">
-      <div className="header-left">HomeEaseAdmin</div>
+      <div className="header-left">HomeEase</div>
       <div className="header-right">
         <button className="icon-btn" title="Notifications">
           <i className="fas fa-bell" />

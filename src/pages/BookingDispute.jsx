@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import PageHeader from '../components/common/PageHeader'
 import SubNav from '../components/common/SubNav'
+import SearchBar from '../components/common/SearchBar'
+import FilterTabs from '../components/common/FilterTabs'
 import SectionCard from '../components/common/SectionCard'
+import Pagination from '../components/common/Pagination'
 import Badge from '../components/common/Badge'
 
 const SUB_NAV = [
@@ -43,11 +45,31 @@ const DISPUTES = [
   },
 ]
 
+const FILTER_TABS = ['All', 'Open', 'Resolved', 'Other']
+
+function isOtherStatus(status) {
+  return status === 'Booking Cancelled' || status === 'Refund Initiated'
+}
+
 export default function BookingDispute() {
   const [disputes, setDisputes] = useState(DISPUTES)
   const [selectedId, setSelectedId] = useState(null)
+  const [filterTab, setFilterTab] = useState('All')
+  const [search, setSearch] = useState('')
 
   const selected = useMemo(() => disputes.find((d) => d.id === selectedId) || null, [disputes, selectedId])
+
+  const filteredDisputes = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return disputes.filter((d) => {
+      if (filterTab === 'Open' && d.status !== 'Open') return false
+      if (filterTab === 'Resolved' && d.status !== 'Resolved') return false
+      if (filterTab === 'Other' && !isOtherStatus(d.status)) return false
+      if (!q) return true
+      const hay = `${d.id} ${d.booking} ${d.raisedBy} ${d.reason}`.toLowerCase()
+      return hay.includes(q)
+    })
+  }, [disputes, filterTab, search])
 
   const closeModal = () => setSelectedId(null)
 
@@ -78,54 +100,73 @@ export default function BookingDispute() {
 
   return (
     <>
-      <PageHeader
-        title="Booking Dispute"
-        subtitle="Resolve booking disputes"
-        actions={<Link to="/bookings" className="btn btn-outline">Back</Link>}
-      />
+      <PageHeader title="Booking Management" subtitle="Booking disputes" />
+      <SubNav items={SUB_NAV} />
+      <div className="toolbar">
+        <SearchBar placeholder="Search disputes..." value={search} onChange={setSearch} />
+        <FilterTabs tabs={FILTER_TABS} activeTab={filterTab} onTabChange={setFilterTab} />
+      </div>
       <SectionCard>
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Dispute ID</th><th>Booking</th><th>Raised By</th><th>Reason</th><th>Status</th><th>Actions</th>
+                <th>Dispute ID</th>
+                <th>Booking</th>
+                <th>Raised By</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {disputes.map((d) => (
+              {filteredDisputes.map((d) => (
                 <tr key={d.id}>
                   <td>{d.id}</td>
                   <td>{d.booking}</td>
                   <td>{d.raisedBy}</td>
                   <td>{d.reason}</td>
-                  <td><Badge variant={getBadgeVariant(d.status)}>{d.status}</Badge></td>
                   <td>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.8125rem' }}
-                      onClick={() => setSelectedId(d.id)}
-                    >
-                      Review
-                    </button>
+                    <Badge variant={getBadgeVariant(d.status)}>{d.status}</Badge>
+                  </td>
+                  <td>
+                    <div className="row-actions">
+                      <button
+                        type="button"
+                        className="action-btn view"
+                        title="Review dispute"
+                        onClick={() => setSelectedId(d.id)}
+                      >
+                        <i className="fas fa-eye" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <Pagination
+          info={`Showing ${filteredDisputes.length} of ${disputes.length} disputes`}
+          hasPrev={false}
+          hasNext={disputes.length > filteredDisputes.length}
+        />
       </SectionCard>
-      <SubNav items={SUB_NAV} />
 
       {selected && (
         <div className="modal-backdrop" onClick={closeModal} role="presentation">
-          <div className="modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+          <div
+            className="modal modal--landscape"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
             <h2 className="modal-title">Review Dispute {selected.id}</h2>
             <p className="modal-body" style={{ marginBottom: '0.75rem' }}>
               <strong>Booking:</strong> {selected.booking} &nbsp;·&nbsp; <strong>Status:</strong>{' '}
               <Badge variant={getBadgeVariant(selected.status)}>{selected.status}</Badge>
             </p>
-            <div className="detail-grid" style={{ marginBottom: '1rem' }}>
+            <div className="modal-detail-grid--2col">
               <div className="detail-block">
                 <label>Raised By</label>
                 <div className="value">{selected.raisedBy}</div>
@@ -150,17 +191,17 @@ export default function BookingDispute() {
                 <label>Payment</label>
                 <div className="value">{selected.details?.payment}</div>
               </div>
-              <div className="detail-block" style={{ gridColumn: '1 / -1' }}>
+              <div className="detail-block detail-block--full">
                 <label>Notes</label>
                 <div className="value">{selected.details?.notes}</div>
               </div>
             </div>
 
-            <div className="modal-actions" style={{ justifyContent: 'space-between' }}>
+            <div className="modal-actions modal-actions--dispute" style={{ justifyContent: 'space-between' }}>
               <button type="button" className="btn btn-outline" onClick={closeModal}>
                 Close
               </button>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="modal-actions__group">
                 <button type="button" className="btn btn-outline" onClick={handleCancelBooking}>
                   Cancel Booking
                 </button>

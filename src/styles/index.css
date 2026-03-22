@@ -65,6 +65,19 @@ body {
   border-bottom: 1px solid rgba(15, 23, 42, 0.16);
 }
 
+.sidebar-brand-content {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.sidebar-logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
 .sidebar-nav {
   padding: 1rem 0;
   display: flex;
@@ -231,6 +244,28 @@ body {
   box-shadow: var(--shadow-md);
 }
 
+.auth-logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.auth-logo {
+  width: 110px;
+  height: auto;
+  border-radius: 10px;
+}
+
+.dashboard-logo-wrap {
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-logo {
+  width: 120px;
+  height: auto;
+  border-radius: 10px;
+}
+
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -291,6 +326,41 @@ body {
   width: 100%;
   max-width: 400px;
   border: 1px solid var(--border);
+}
+
+/* Wider landscape modal (e.g. dispute review) — multi-column content */
+.modal--landscape {
+  max-width: min(92vw, 720px);
+}
+
+/* 2-column detail blocks inside wide modals (dispute review, process refund, etc.) */
+.modal-detail-grid--2col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.modal-detail-grid--2col .detail-block--full {
+  grid-column: 1 / -1;
+}
+
+.modal-actions--dispute {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-actions--dispute .modal-actions__group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+@media (max-width: 520px) {
+  .modal-detail-grid--2col {
+    grid-template-columns: 1fr;
+  }
 }
 
 .modal-title {

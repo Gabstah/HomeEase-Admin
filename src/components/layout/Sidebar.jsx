@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import homeEaseLogo from '../Assets/HomeEase Logo.jpg'
 
 const NAV_ITEMS = [
   { to: '/dashboard', page: 'dashboard', icon: 'fa-th-large', label: 'Dashboard' },
   { to: '/users', page: 'users', icon: 'fa-users', label: 'Users' },
   { to: '/workers', page: 'workers', icon: 'fa-user-cog', label: 'Workers' },
+  { to: '/verification', page: 'verification', icon: 'fa-id-card', label: 'Verification' },
   { to: '/price-control', page: 'price-control', icon: 'fa-sliders', label: 'Price Control' },
   { to: '/bookings', page: 'bookings', icon: 'fa-calendar-check', label: 'Bookings' },
   { to: '/payments', page: 'payments', icon: 'fa-credit-card', label: 'Payments' },
   { to: '/reviews', page: 'reviews', icon: 'fa-star', label: 'Reviews' },
   { to: '/reports', page: 'reports', icon: 'fa-chart-bar', label: 'Reports' },
-  { to: '/verification', page: 'verification', icon: 'fa-id-card', label: 'Verification' },
+  
   
   //{ to: '/settings', page: 'settings', icon: 'fa-cog', label: 'Settings' },
 ]
@@ -34,7 +36,12 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-brand">HomeEaseAdmin</div>
+      <div className="sidebar-brand">
+        <div className="sidebar-brand-content">
+          <img src={homeEaseLogo} alt="HomeEase Logo" className="sidebar-logo" />
+          <span>HomeEase</span>
+        </div>
+      </div>
       <nav className="sidebar-nav">
         {NAV_ITEMS.map(({ to, page, icon, label }) => (
           <NavLink

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SectionCard from '../components/common/SectionCard'
+import homeEaseLogo from '../components/Assets/HomeEase Logo.jpg'
 
 const USERNAME = 'admin'
 const PASSWORD = 'admin123'
@@ -24,6 +25,9 @@ export default function Login() {
   return (
     <div className="auth-page">
       <SectionCard className="auth-card">
+        <div className="auth-logo-wrap">
+          <img src={homeEaseLogo} alt="HomeEase Logo" className="auth-logo" />
+        </div>
         <h1 className="page-title" style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
           Admin Login
         </h1>
