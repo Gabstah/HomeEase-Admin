@@ -1,43 +1,45 @@
-# HomeEaseAdmin - React Dashboard
+# HomeEase — Admin + API Monorepo
 
-Admin dashboard for HomeEase, built with React and Vite.
+## Phase status
 
-## Project Structure
+- **Phase 1** — Auth, shared API client, file upload — DONE
+- **Phase 2** — Verification, users, workers, bookings wired to API — DONE
+- **Phase 3** — LLM verification pipeline — NEXT
+- **Phase 4** — Payments, disputes, reviews API — TODO
 
-```
-src/
-├── main.jsx              # Entry point
-├── App.jsx               # App shell with routing
-├── components/
-│   ├── layout/           # Sidebar, Header, MainLayout
-│   └── common/           # Reusable UI (StatCard, SectionCard, Badge, etc.)
-├── pages/                # Page components (Dashboard, Users, Workers, etc.)
-└── styles/
-    └── index.css         # Global styles
-```
-
-## Run
+## Quick start
 
 ```bash
-npm install
-npm run dev
+# Back-End
+cd Back-End && npm install && cp .env.example .env
+npm run db:push && npm run db:seed && npm run dev
+
+# Front-End
+cd Front-End && npm install && npm run dev
 ```
 
-## Build
+**Admin login:** `admin@homeeaseadmin.com` / `Admin1234`
 
-```bash
-npm run build
+### Login shows "Internal server error"?
+
+1. Check `Back-End/.env` exists (copy from `.env.example` if missing)
+2. Run `npm run db:push` and `npm run db:seed` inside `Back-End`
+3. **Restart the backend** — stop the old terminal (Ctrl+C), then `npm run dev` again
+4. Backend must be running at **http://localhost:5000** before logging in on the admin site
+
+## Project structure
+
+```
+Back-End/     Express + Prisma API
+Front-End/    React admin dashboard
+shared/       API client + constants (mobile + admin)
 ```
 
-## Routes
+## Removed in Phase 2
 
-- `/dashboard` - Main dashboard
-- `/analytics` - Analytics & reports
-- `/users` - User management (All / Clients / Workers)
-- `/workers` - Worker management
-- `/verification` - Pending verifications
-- `/bookings` - Booking management
-- `/payments` - Payments & refunds
-- `/reviews` - Reviews management
-- `/reports` - System logs & exports
-- `/settings` - Admin settings
+- `Front-End/src/data/users.js` — replaced by API
+- `Front-End/src/data/verifications.js` — replaced by API
+- `Front-End/js/app.js` — legacy vanilla prototype
+- `Front-End/css/styles.css` — legacy styles
+
+`Front-End/src/data/payments.js` kept until Phase 4 (payments API).
