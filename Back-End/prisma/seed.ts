@@ -118,27 +118,66 @@ async function main() {
   const bookingCount = await prisma.booking.count();
 
   if (bookingCount === 0 && client && worker) {
-    await prisma.booking.createMany({
-      data: [
-        {
-          clientId: client.id,
-          workerId: worker.id,
-          serviceType: 'Electrical Repair',
-          status: 'COMPLETED',
-          scheduledAt: new Date('2025-03-01T14:00:00'),
-          amount: 620,
-        },
-        {
-          clientId: client.id,
-          workerId: worker.id,
-          serviceType: 'HVAC Maintenance',
-          status: 'PENDING',
-          scheduledAt: new Date('2025-03-05T10:00:00'),
-          amount: 450,
-        },
-      ],
+    const booking1 = await prisma.booking.create({
+      data: {
+        clientId: client.id,
+        workerId: worker.id,
+        serviceType: 'Electrical Repair',
+        status: 'COMPLETED',
+        scheduledAt: new Date('2025-03-01T14:00:00'),
+        amount: 620,
+      },
     });
-    console.log('Sample bookings created');
+
+    const booking2 = await prisma.booking.create({
+      data: {
+        clientId: client.id,
+        workerId: worker.id,
+        serviceType: 'HVAC Maintenance',
+        status: 'PENDING',
+        scheduledAt: new Date('2025-03-05T10:00:00'),
+        amount: 450,
+      },
+    });
+
+    await prisma.payment.create({
+      data: {
+        bookingId: booking1.id,
+        userId: client.id,
+        amount: 620,
+        status: 'COMPLETED',
+        method: 'GCash',
+      },
+    });
+
+    await prisma.dispute.create({
+      data: {
+        bookingId: booking2.id,
+        raisedById: client.id,
+        reason: 'Worker did not arrive at scheduled time',
+        status: 'OPEN',
+        notes: 'Client reports the worker did not arrive at the scheduled time.',
+      },
+    });
+
+    await prisma.review.create({
+      data: {
+        bookingId: booking1.id,
+        clientId: client.id,
+        workerId: worker.id,
+        rating: 4.9,
+        comment: 'Very professional and completed the work on time.',
+        flagged: false,
+        status: 'VISIBLE',
+      },
+    });
+
+    await prisma.workerProfile.updateMany({
+      where: { userId: worker.id },
+      data: { reviewCount: 1 },
+    });
+
+    console.log('Sample bookings, payment, dispute, and review created');
   }
 }
 

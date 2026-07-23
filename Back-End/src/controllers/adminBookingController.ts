@@ -9,7 +9,7 @@ function buildBookingWhere(search: string, status?: string): Prisma.BookingWhere
   const where: Prisma.BookingWhereInput = {};
 
   if (status && status !== 'all') {
-    where.status = status.toUpperCase();
+    where.status = status.toUpperCase() as any;
   }
 
   if (search) {
@@ -23,24 +23,17 @@ function buildBookingWhere(search: string, status?: string): Prisma.BookingWhere
   return where;
 }
 
-function formatBooking(record: {
-  id: string;
-  serviceType: string;
-  status: string;
-  scheduledAt: Date | null;
-  amount: number | null;
-  createdAt: Date;
-  client: { fullName: string };
-  worker: { fullName: string } | null;
-}) {
+function formatBooking(record: any) {
+  const amount = record.finalPrice ?? record.estimatedPrice ?? null;
+
   return {
     id: record.id,
     displayId: formatDisplayId(record.id),
-    client: record.client.fullName,
+    client: record.client?.fullName ?? '—',
     worker: record.worker?.fullName ?? '—',
     service: record.serviceType,
-    date: record.scheduledAt
-      ? record.scheduledAt.toLocaleDateString('en-US', {
+    date: record.scheduledDate
+      ? record.scheduledDate.toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
           year: 'numeric',
@@ -50,7 +43,7 @@ function formatBooking(record: {
           day: 'numeric',
           year: 'numeric',
         }),
-    amount: record.amount != null ? formatPeso(record.amount) : '—',
+    amount: amount != null ? formatPeso(amount) : '—',
     status: record.status.charAt(0) + record.status.slice(1).toLowerCase(),
   };
 }
@@ -114,8 +107,8 @@ export const getBookingById = async (req: Request, res: Response) => {
         worker: booking.worker?.fullName ?? '—',
         workerId: booking.worker?.id ?? null,
         service: booking.serviceType,
-        date: booking.scheduledAt
-          ? booking.scheduledAt.toLocaleString('en-US', {
+        date: booking.scheduledDate
+          ? booking.scheduledDate.toLocaleString('en-US', {
               month: 'short',
               day: 'numeric',
               year: 'numeric',
@@ -130,7 +123,7 @@ export const getBookingById = async (req: Request, res: Response) => {
               minute: '2-digit',
             }),
         status: booking.status.charAt(0) + booking.status.slice(1).toLowerCase(),
-        amount: booking.amount != null ? formatPeso(booking.amount) : '—',
+        amount: (booking.finalPrice ?? booking.estimatedPrice) != null ? formatPeso(booking.finalPrice ?? booking.estimatedPrice) : '—',
       },
     });
   } catch (error) {

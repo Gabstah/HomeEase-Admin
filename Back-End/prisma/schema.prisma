@@ -3,114 +3,478 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
 }
 
 model User {
-  id        String   @id @default(cuid())
-  fullName  String
-  email     String   @unique
-  phone     String
-  password  String
-  role      String   @default("CLIENT")
-  status    String   @default("ACTIVE")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                      String                @id @default(cuid())
+  email                   String                @unique
+  phone                   String?
+  password                String
+  fullName                String
+  role                    Role
+  isVerified              Boolean               @default(false)
+  avatar                  String?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+  deletedAt               DateTime?
+  isDeleted               Boolean               @default(false)
+  notificationPreferences Json?
+  authTokens              AuthToken[]
+  bookingsAsClient        Booking[]             @relation("client")
+  bookingsAsWorker        Booking[]             @relation("worker")
+  clientProfile           ClientProfile?
+  contractAcceptances     ContractAcceptance[]
+  receivedMessages        Message[]             @relation("receiver")
+  sentMessages            Message[]             @relation("sender")
+  notifications           Notification[]
+  reviews                 Review[]
+  addresses               UserAddress[]
+  verificationRequests    VerificationRequest[]
+  workerProfile           WorkerProfile?
 
-  clientProfile        ClientProfile?
-  workerProfile        WorkerProfile?
-  bookings             Booking[]             @relation("ClientBookings")
-  workerBookings       Booking[]             @relation("WorkerBookings")
-  payments             Payment[]
-  verificationRequests VerificationRequest[]
+  @@index([email])
+  @@index([role])
+  @@index([isDeleted])
+}
+
+model UserAddress {
+  id        String    @id @default(cuid())
+  userId    String
+  label     String?
+  street    String
+  city      String
+  state     String?
+  zipCode   String?
+  isDefault Boolean   @default(false)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isDefault])
+}
+
+model AuthToken {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique
+  type      TokenType
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
 }
 
 model ClientProfile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  address   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String               @id @default(cuid())
+  userId         String               @unique
+  address        String?
+  city           String?
+  state          String?
+  zipCode        String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentMethods SavedPaymentMethod[]
+
+  @@index([userId])
 }
 
 model WorkerProfile {
-  id                 String   @id @default(cuid())
-  userId             String   @unique
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  services           String?
-  verificationStatus String   @default("PENDING")
-  rating             Float    @default(0)
-  reviewCount        Int      @default(0)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                String             @id @default(cuid())
+  userId            String             @unique
+  bio               String?
+  rating            Float              @default(5.0)
+  totalReviews      Int                @default(0)
+  isAvailable       Boolean            @default(true)
+  maxConcurrentJobs Int                @default(2)
+  activeJobCount    Int                @default(0)
+  availableDays     Int[]              @default([1, 2, 3, 4, 5])
+  serviceAreaRadius Int                @default(30)
+  address           String?
+  city              String?
+  state             String?
+  zipCode           String?
+  kycStatus         KYCStatus          @default(PENDING)
+  kycSubmittedAt    DateTime?
+  kycApprovedAt     DateTime?
+  resumeUrl         String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  certifications    Certification[]
+  resumeParseResult ResumeParseResult?
+  reviews           Review[]
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceTypes      ServiceType[]      @relation("ServiceTypeToWorkerProfile")
+
+  @@index([userId])
+  @@index([kycStatus])
+  @@index([isAvailable])
 }
 
 model VerificationRequest {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type         String
-  documentType String
-  services     String?
-  status       String   @default("PENDING")
-  rejectReason String?
+  id                  String        @id @default(cuid())
+  userId              String
+  type                String
+  status              KYCStatus     @default(PENDING)
+  rejectionReason     String?
   adminOverrideReason String?
-  reviewedById String?
-  reviewedAt   DateTime?
-  aiStatus     String?
-  aiSummary    String?
-  aiConfidence Float?
-  aiError      String?
-  aiReviewedAt DateTime?
-  submittedAt  DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  documents VerificationDocument[]
+  reviewedById        String?
+  reviewedAt          DateTime?
+  aiStatus            String?
+  aiSummary           String?
+  aiConfidence        Float?
+  aiError             String?
+  aiReviewedAt        DateTime?
+  submittedAt         DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  documents           KycDocument[]
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([userId])
 }
 
-model VerificationDocument {
+model KycDocument {
   id                    String              @id @default(cuid())
+  documentType          KycDocumentType
+  fileUrl               String
+  fileSize              Int?
+  mimeType              String?
+  status                KycDocumentStatus   @default(PENDING)
+  rejectionReason       String?
+  reviewedAt            DateTime?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  fileName              String?
+  originalName          String?
+  reviewedById          String?
   verificationRequestId String
   verificationRequest   VerificationRequest @relation(fields: [verificationRequestId], references: [id], onDelete: Cascade)
-  fileName              String
-  originalName          String
-  mimeType              String
-  filePath              String
-  fileSize              Int
-  uploadedAt            DateTime            @default(now())
+
+  @@index([verificationRequestId, documentType])
+  @@index([status])
+}
+
+model ResumeParseResult {
+  id                String        @id @default(cuid())
+  workerProfileId   String        @unique
+  rawText           String?
+  parsedSkills      String[]
+  yearsOfExperience Int?
+  masteryLevel      String?
+  tradeCategory     String?
+  summary           String?
+  parsedAt          DateTime      @default(now())
+  modelUsed         String        @default("claude-sonnet-4-6")
+  workerProfile     WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+
+  @@index([workerProfileId])
+}
+
+model Certification {
+  id                 String            @id @default(cuid())
+  workerProfileId    String
+  title              String
+  issuer             String
+  issueDate          DateTime
+  expiryDate         DateTime?
+  documentUrl        String
+  verificationStatus KycDocumentStatus @default(PENDING)
+  rejectionReason    String?
+  reviewedAt         DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  workerProfile      WorkerProfile     @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+
+  @@index([workerProfileId])
+  @@index([verificationStatus])
+}
+
+model ContractAcceptance {
+  id              String       @id @default(cuid())
+  userId          String
+  contractType    ContractType
+  contractVersion String       @default("1.0")
+  acceptedAt      DateTime     @default(now())
+  ipAddress       String?
+  userAgent       String?
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, contractType])
+}
+
+model ServiceType {
+  id          String          @id @default(cuid())
+  name        String          @unique
+  description String?
+  basePrice   Float
+  isActive    Boolean         @default(true)
+  tasks       ServiceTask[]
+  workers     WorkerProfile[] @relation("ServiceTypeToWorkerProfile")
+}
+
+model ServiceTask {
+  id            String      @id @default(cuid())
+  serviceTypeId String
+  name          String
+  description   String?
+  basePrice     Float
+  durationHours Float
+  isActive      Boolean     @default(true)
+  bookings      Booking[]
+  serviceType   ServiceType @relation(fields: [serviceTypeId], references: [id], onDelete: Cascade)
+
+  @@index([serviceTypeId])
 }
 
 model Booking {
-  id          String    @id @default(cuid())
-  clientId    String
-  workerId    String?
-  serviceType String
-  status      String    @default("PENDING")
-  scheduledAt DateTime?
-  amount      Float?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                     String         @id @default(cuid())
+  clientId               String
+  workerId               String?
+  serviceType            String
+  serviceTaskId          String?
+  description            String
+  estimatedDurationHours Float?
+  scheduledDate          DateTime
+  completionDate         DateTime?
+  status                 BookingStatus  @default(PENDING)
+  estimatedPrice         Float
+  tip                    Float?         @default(0)
+  quoteStatus            QuoteStatus?
+  laborCost              Float?
+  materialsCost          Float?
+  quotedAt               DateTime?
+  quoteNotes             String?
+  approvedAt             DateTime?
+  disputeReason          String?
+  inspectionFeeCharged   Boolean        @default(false)
+  inspectionFeeAmount    Float?
+  finalPrice             Float?
+  location               String
+  city                   String
+  notes                  String?
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  scheduledTime          String?
+  client                 User           @relation("client", fields: [clientId], references: [id], onDelete: Cascade)
+  serviceTask            ServiceTask?   @relation(fields: [serviceTaskId], references: [id])
+  worker                 User?          @relation("worker", fields: [workerId], references: [id], onDelete: Cascade)
+  addOns                 BookingAddOn[]
+  payment                Payment?
+  review                 Review?
 
-  client  User  @relation("ClientBookings", fields: [clientId], references: [id])
-  worker  User? @relation("WorkerBookings", fields: [workerId], references: [id])
-  payment Payment?
+  @@unique([workerId, scheduledDate, scheduledTime], name: "worker_slot_unique")
+  @@index([clientId, status])
+  @@index([workerId, status])
+  @@index([scheduledDate])
+  @@index([status])
+}
+
+model BookingAddOn {
+  id        String  @id @default(cuid())
+  bookingId String
+  name      String
+  price     Float
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
 }
 
 model Payment {
-  id        String   @id @default(cuid())
-  bookingId String   @unique
-  userId    String
-  amount    Float
-  status    String   @default("PENDING")
-  method    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                   String            @id @default(cuid())
+  bookingId            String            @unique
+  subtotal             Float
+  tip                  Float             @default(0)
+  commissionRate       Float             @default(0.10)
+  commissionAmount     Float
+  withholdingTaxRate   Float             @default(0.05)
+  withholdingTaxAmount Float
+  workerPayout         Float
+  totalAmount          Float
+  status               PaymentStatus     @default(PENDING)
+  escrowStatus         EscrowStatus      @default(HELD)
+  releasedAt           DateTime?
+  paymongoPaymentId    String?
+  paymongoSourceId     String?
+  methodType           PaymentMethodType
+  accountIdentifier    String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  booking              Booking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
-  booking Booking @relation(fields: [bookingId], references: [id])
-  user    User    @relation(fields: [userId], references: [id])
+  @@index([bookingId])
+  @@index([status])
+  @@index([escrowStatus])
+}
+
+model SavedPaymentMethod {
+  id                String            @id @default(cuid())
+  clientProfileId   String
+  type              PaymentMethodType
+  accountIdentifier String?
+  label             String?
+  isDefault         Boolean           @default(false)
+  createdAt         DateTime          @default(now())
+  clientProfile     ClientProfile     @relation(fields: [clientProfileId], references: [id], onDelete: Cascade)
+
+  @@index([clientProfileId])
+}
+
+model Review {
+  id        String        @id @default(cuid())
+  bookingId String        @unique
+  workerId  String
+  clientId  String
+  rating    Float
+  comment   String?
+  createdAt DateTime      @default(now())
+  booking   Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  client    User          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  worker    WorkerProfile @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@index([workerId])
+  @@index([clientId])
+}
+
+model Message {
+  id         String    @id @default(cuid())
+  senderId   String
+  receiverId String
+  content    String
+  isRead     Boolean   @default(false)
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+  receiver   User      @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User      @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  relatedId String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([userId, isRead])
+}
+
+enum Role {
+  CLIENT
+  WORKER
+  ADMIN
+}
+
+enum TokenType {
+  ACCESS
+  REFRESH
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  IN_PROGRESS
+  QUOTE_SUBMITTED
+  QUOTE_APPROVED
+  DISPUTED
+  COMPLETED
+  CANCELLED
+}
+
+enum QuoteStatus {
+  PENDING
+  SUBMITTED
+  APPROVED
+  DISPUTED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum EscrowStatus {
+  HELD
+  RELEASED
+  REFUNDED
+}
+
+enum PaymentMethodType {
+  GCASH
+  MAYA
+  CARD
+  BANK_TRANSFER
+  CASH
+}
+
+enum KYCStatus {
+  PENDING
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum KycDocumentType {
+  GOVERNMENT_ID_FRONT
+  GOVERNMENT_ID_BACK
+  SELFIE
+  RESUME
+  CERTIFICATION
+  NBI_CLEARANCE
+  BARANGAY_CLEARANCE
+  POLICE_CLEARANCE
+  CEDULA
+}
+
+enum KycDocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ContractType {
+  WORKER_SERVICE_AGREEMENT
+  CLIENT_USER_AGREEMENT
+}
+
+enum NotificationType {
+  BOOKING_REQUEST
+  BOOKING_ACCEPTED
+  BOOKING_REJECTED
+  BOOKING_COMPLETED
+  PAYMENT_RECEIVED
+  REVIEW_RECEIVED
+  MESSAGE_RECEIVED
+  VERIFICATION_EMAIL
+  PASSWORD_RESET
+  QUOTE_SUBMITTED
+  QUOTE_APPROVED
+  QUOTE_DISPUTED
+  BOOKING_CANCELLED
+  BOOKING_RESCHEDULED
+  PAYMENT_REFUNDED
+  ADDON_ADDED
+  VERIFICATION_SUBMITTED
+  VERIFICATION_APPROVED
+  VERIFICATION_REJECTED
 }

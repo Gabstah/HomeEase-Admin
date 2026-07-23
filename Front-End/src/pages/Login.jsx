@@ -46,6 +46,11 @@ export default function Login() {
         <p className="page-subtitle" style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
           Sign in to your HomeEase admin account
         </p>
+        {import.meta.env.DEV && (
+          <p className="page-subtitle" style={{ textAlign: 'center', marginBottom: '1rem', color: '#64748b' }}>
+            Dummy admin login: admin@homeeaseadmin.com / Admin1234
+          </p>
+        )}
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="form-field">
             <label htmlFor="email">Email</label>
@@ -54,7 +59,7 @@ export default function Login() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="HomeEaseAdmin@gmail.com"
+              placeholder="Enter Email "
               autoComplete="email"
               required
             />

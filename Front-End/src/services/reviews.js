@@ -10,20 +10,20 @@ function buildQuery(params) {
   return query.toString();
 }
 
-export async function fetchClients(params = {}) {
-  const response = await apiRequest(`/admin/users/clients?${buildQuery(params)}`);
+export async function fetchReviews(params = {}) {
+  const response = await apiRequest(`/admin/reviews?${buildQuery(params)}`);
   return { data: response.data, meta: response.meta };
 }
 
-export async function fetchClientById(id) {
-  const response = await apiRequest(`/admin/users/clients/${id}`);
+export async function fetchReviewById(id) {
+  const response = await apiRequest(`/admin/reviews/${id}`);
   return response.data;
 }
 
-export async function updateUserStatus(id, status, reason, notes) {
-  const response = await apiRequest(`/admin/users/${id}/status`, {
+export async function updateReview(id, payload) {
+  const response = await apiRequest(`/admin/reviews/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify({ status, reason, notes }),
+    body: JSON.stringify(payload),
   });
   return response.data;
 }

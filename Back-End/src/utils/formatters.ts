@@ -3,6 +3,8 @@ import { Prisma } from '@prisma/client';
 export function formatVerification(
   record: Prisma.VerificationRequestGetPayload<{ include: { user: true; documents: true } }>
 ) {
+  const documentTypes = record.documents.map((doc) => doc.documentType).filter(Boolean);
+
   return {
     id: record.id,
     name: record.user.fullName,
@@ -10,10 +12,10 @@ export function formatVerification(
     phone: record.user.phone,
     userId: record.user.id,
     type: record.type.toLowerCase(),
-    documentType: record.documentType,
-    services: record.services ?? '—',
+    documentType: documentTypes[0] ? documentTypes[0].toLowerCase() : 'unknown',
+    services: documentTypes.length ? documentTypes.join(', ') : '—',
     status: record.status,
-    rejectReason: record.rejectReason,
+    rejectReason: record.rejectionReason ?? null,
     adminOverrideReason: record.adminOverrideReason ?? null,
     aiStatus: record.aiStatus ?? 'PENDING',
     aiSummary: record.aiSummary ?? null,
@@ -26,11 +28,11 @@ export function formatVerification(
     }),
     documents: record.documents.map((doc) => ({
       id: doc.id,
-      name: doc.originalName,
+      name: doc.originalName ?? doc.fileName ?? 'document',
       mimeType: doc.mimeType,
-      url: `/uploads/verifications/${doc.fileName}`,
-      fileSize: doc.fileSize,
-      uploadedAt: doc.uploadedAt.toISOString(),
+      url: doc.fileUrl,
+      fileSize: doc.fileSize ?? 0,
+      uploadedAt: doc.createdAt.toISOString(),
     })),
   };
 }

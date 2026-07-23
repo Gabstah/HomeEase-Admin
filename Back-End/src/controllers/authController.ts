@@ -116,7 +116,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json(errorResponse(401, 'Invalid credentials'));
     }
 
-    if (user.status === 'SUSPENDED') {
+    if (user.isDeleted) {
       return res.status(403).json(errorResponse(403, 'Account suspended'));
     }
 
@@ -164,7 +164,7 @@ export const getMe = async (req: Request, res: Response) => {
         email: true,
         phone: true,
         role: true,
-        status: true,
+        isDeleted: true,
         createdAt: true,
       },
     });
@@ -181,7 +181,7 @@ export const getMe = async (req: Request, res: Response) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        status: user.status,
+        status: user.isDeleted ? 'INACTIVE' : 'ACTIVE',
       },
     });
   } catch (error) {
